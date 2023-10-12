@@ -2,10 +2,8 @@ module benchmark
 
 go 1.20
 
-replace github.com/loopholelabs/polyglot v1.1.4 => ../polyglot-go
-
 require (
-	github.com/loopholelabs/polyglot v1.1.4
+	github.com/loopholelabs/polyglot v1.1.3-0.20231012140513-145beac0a8e4
 	google.golang.org/grpc v1.58.3
 	google.golang.org/protobuf v1.31.0
 )
