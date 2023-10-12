@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+option go_package = "./benchmark";
+
+message BytesData {
+  bytes bytes = 1;
+}
+
+message IntegerData {
+  int32 integer = 1;
+}
+
+
+service Benchmark {}
