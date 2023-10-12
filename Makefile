@@ -3,4 +3,4 @@ generate:
 	- mkdir -p polyglot && protoc --go-polyglot_out=polyglot bench.proto
 
 benchmark:
-	- go test -bench=. ./... -benchtime=1000000000x
+	- go test -bench=. ./... -benchtime=100000000x
