@@ -34,28 +34,23 @@ func BenchmarkEncodeBytes(b *testing.B) {
 		Bytes: randData,
 	}
 
-	polyglotBuf := polyglot.GetBuffer()
-	b.Cleanup(func() {
-		polyglot.PutBuffer(polyglotBuf)
-	})
-
 	b.Run("polyglot", func(b *testing.B) {
+		polyglotBuf := polyglot.GetBuffer()
 		b.SetBytes(512)
 		for i := 0; i < b.N; i++ {
 			polyglotData.Encode(polyglotBuf)
 			polyglotBuf.Reset()
 		}
+		polyglot.PutBuffer(polyglotBuf)
 	})
 
 	vtData := vtBenchmark.BytesData{
 		Bytes: randData,
 	}
-
-	vtBuf := make([]byte, 0, 1024)
-
 	b.Run("vtproto", func(b *testing.B) {
 		var err error
 		b.SetBytes(512)
+		vtBuf := make([]byte, 0, 1024)
 		for i := 0; i < b.N; i++ {
 			_, err = vtData.MarshalToVT(vtBuf)
 			if err != nil {
@@ -78,13 +73,11 @@ func BenchmarkEncodeBytesParallel(b *testing.B) {
 		b.SetBytes(512)
 		b.RunParallel(func(pb *testing.PB) {
 			polyglotBuf := polyglot.GetBuffer()
-			b.Cleanup(func() {
-				polyglot.PutBuffer(polyglotBuf)
-			})
 			for pb.Next() {
 				polyglotData.Encode(polyglotBuf)
 				polyglotBuf.Reset()
 			}
+			polyglot.PutBuffer(polyglotBuf)
 		})
 	})
 
