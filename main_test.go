@@ -37,6 +37,7 @@ func BenchmarkEncodeBytes(b *testing.B) {
 	b.Run("polyglot", func(b *testing.B) {
 		polyglotBuf := polyglot.GetBuffer()
 		b.SetBytes(512)
+		b.ReportAllocs()
 		for i := 0; i < b.N; i++ {
 			polyglotData.Encode(polyglotBuf)
 			polyglotBuf.Reset()
@@ -50,6 +51,7 @@ func BenchmarkEncodeBytes(b *testing.B) {
 	b.Run("vtproto", func(b *testing.B) {
 		var err error
 		b.SetBytes(512)
+		b.ReportAllocs()
 		vtBuf := make([]byte, 0, 1024)
 		for i := 0; i < b.N; i++ {
 			_, err = vtData.MarshalToVT(vtBuf)
@@ -71,6 +73,7 @@ func BenchmarkEncodeBytesParallel(b *testing.B) {
 
 	b.Run("polyglot", func(b *testing.B) {
 		b.SetBytes(512)
+		b.ReportAllocs()
 		b.RunParallel(func(pb *testing.PB) {
 			polyglotBuf := polyglot.GetBuffer()
 			for pb.Next() {
@@ -87,6 +90,7 @@ func BenchmarkEncodeBytesParallel(b *testing.B) {
 
 	b.Run("vtproto", func(b *testing.B) {
 		b.SetBytes(512)
+		b.ReportAllocs()
 		b.RunParallel(func(pb *testing.PB) {
 			var err error
 			vtBuf := make([]byte, 0, 1024)
@@ -109,15 +113,13 @@ func BenchmarkDecodeBytes(b *testing.B) {
 		Bytes: randData,
 	}
 	polyglotBuf := polyglot.GetBuffer()
-	b.Cleanup(func() {
-		polyglot.PutBuffer(polyglotBuf)
-	})
 	polyglotData.Encode(polyglotBuf)
 	polyglotBytes := polyglotBuf.Bytes()
 
 	b.Run("polyglot", func(b *testing.B) {
 		var err error
 		b.SetBytes(512)
+		b.ReportAllocs()
 		for i := 0; i < b.N; i++ {
 			polyglotData.Bytes = nil
 			err = polyglotData.Decode(polyglotBytes)
@@ -129,6 +131,7 @@ func BenchmarkDecodeBytes(b *testing.B) {
 			}
 		}
 	})
+	polyglot.PutBuffer(polyglotBuf)
 
 	vtData := vtBenchmark.BytesData{
 		Bytes: randData,
@@ -141,6 +144,7 @@ func BenchmarkDecodeBytes(b *testing.B) {
 	b.Run("vtproto", func(b *testing.B) {
 		var err error
 		b.SetBytes(512)
+		b.ReportAllocs()
 		for i := 0; i < b.N; i++ {
 			vtData.Reset()
 			err = vtData.UnmarshalVT(vtBuf)
@@ -162,14 +166,12 @@ func BenchmarkDecodeBytesParallel(b *testing.B) {
 		Bytes: randData,
 	}
 	polyglotBuf := polyglot.GetBuffer()
-	b.Cleanup(func() {
-		polyglot.PutBuffer(polyglotBuf)
-	})
 	polyglotData.Encode(polyglotBuf)
 	polyglotBytes := polyglotBuf.Bytes()
 
 	b.Run("polyglot", func(b *testing.B) {
 		b.SetBytes(512)
+		b.ReportAllocs()
 		b.RunParallel(func(pb *testing.PB) {
 			var err error
 			polyglotData := new(polyglotBenchmark.BytesData)
@@ -184,8 +186,8 @@ func BenchmarkDecodeBytesParallel(b *testing.B) {
 				}
 			}
 		})
-
 	})
+	polyglot.PutBuffer(polyglotBuf)
 
 	vtData := vtBenchmark.BytesData{
 		Bytes: randData,
@@ -197,6 +199,7 @@ func BenchmarkDecodeBytesParallel(b *testing.B) {
 
 	b.Run("vtproto", func(b *testing.B) {
 		b.SetBytes(512)
+		b.ReportAllocs()
 		b.RunParallel(func(pb *testing.PB) {
 			var err error
 			vtData := new(vtBenchmark.BytesData)
@@ -219,16 +222,14 @@ func BenchmarkEncodeInt32(b *testing.B) {
 		Integer: math.MaxInt32,
 	}
 	polyglotBuf := polyglot.GetBuffer()
-	b.Cleanup(func() {
-		polyglot.PutBuffer(polyglotBuf)
-	})
-
 	b.Run("polyglot", func(b *testing.B) {
+		b.ReportAllocs()
 		for i := 0; i < b.N; i++ {
 			polyglotData.Encode(polyglotBuf)
 			polyglotBuf.Reset()
 		}
 	})
+	polyglot.PutBuffer(polyglotBuf)
 
 	vtData := vtBenchmark.IntegerData{
 		Integer: math.MaxInt32,
@@ -237,6 +238,7 @@ func BenchmarkEncodeInt32(b *testing.B) {
 
 	b.Run("vtproto", func(b *testing.B) {
 		var err error
+		b.ReportAllocs()
 		for i := 0; i < b.N; i++ {
 			_, err = vtData.MarshalToVT(vtBuf)
 			if err != nil {
@@ -252,14 +254,12 @@ func BenchmarkDecodeInt32(b *testing.B) {
 		Integer: math.MaxInt32,
 	}
 	polyglotBuf := polyglot.GetBuffer()
-	b.Cleanup(func() {
-		polyglot.PutBuffer(polyglotBuf)
-	})
 	polyglotData.Encode(polyglotBuf)
 	polyglotBytes := polyglotBuf.Bytes()
 
 	b.Run("polyglot", func(b *testing.B) {
 		var err error
+		b.ReportAllocs()
 		for i := 0; i < b.N; i++ {
 			err = polyglotData.Decode(polyglotBytes)
 			if err != nil {
@@ -270,6 +270,7 @@ func BenchmarkDecodeInt32(b *testing.B) {
 			}
 		}
 	})
+	polyglot.PutBuffer(polyglotBuf)
 
 	vtData := vtBenchmark.IntegerData{
 		Integer: math.MaxInt32,
@@ -280,6 +281,7 @@ func BenchmarkDecodeInt32(b *testing.B) {
 
 	b.Run("vtproto", func(b *testing.B) {
 		var err error
+		b.ReportAllocs()
 		for i := 0; i < b.N; i++ {
 			err = vtData.UnmarshalVT(vtBuf)
 			if err != nil {
