@@ -22,7 +22,6 @@ import (
 	"bytes"
 	"crypto/rand"
 	"github.com/loopholelabs/polyglot"
-	"github.com/loov/hrtime/hrtesting"
 	"math"
 	"runtime"
 	"testing"
@@ -46,8 +45,7 @@ func BenchmarkEncodeBytes(b *testing.B) {
 
 	b.Run("polyglot", func(b *testing.B) {
 		b.SetBytes(512)
-		bench := hrtesting.NewBenchmark(b)
-		for bench.Next() {
+		for i := 0; i < b.N; i++ {
 			polyglotData.Encode(polyglotBuf)
 			polyglotBuf.Reset()
 		}
@@ -57,8 +55,7 @@ func BenchmarkEncodeBytes(b *testing.B) {
 	b.Run("vtproto", func(b *testing.B) {
 		var err error
 		b.SetBytes(512)
-		bench := hrtesting.NewBenchmark(b)
-		for bench.Next() {
+		for i := 0; i < b.N; i++ {
 			_, err = vtData.MarshalToVT(vtBuf)
 			if err != nil {
 				b.Fatal(err)
@@ -134,8 +131,7 @@ func BenchmarkDecodeBytes(b *testing.B) {
 	b.Run("polyglot", func(b *testing.B) {
 		var err error
 		b.SetBytes(512)
-		bench := hrtesting.NewBenchmark(b)
-		for bench.Next() {
+		for i := 0; i < b.N; i++ {
 			polyglotData.Bytes = nil
 			err = polyglotData.Decode(polyglotBytes)
 			if err != nil {
@@ -151,8 +147,7 @@ func BenchmarkDecodeBytes(b *testing.B) {
 	b.Run("vtproto", func(b *testing.B) {
 		var err error
 		b.SetBytes(512)
-		bench := hrtesting.NewBenchmark(b)
-		for bench.Next() {
+		for i := 0; i < b.N; i++ {
 			vtData.Reset()
 			err = vtData.UnmarshalVT(vtBuf)
 			if err != nil {
@@ -240,8 +235,7 @@ func BenchmarkEncodeInt32(b *testing.B) {
 	b.ResetTimer()
 
 	b.Run("polyglot", func(b *testing.B) {
-		bench := hrtesting.NewBenchmark(b)
-		for bench.Next() {
+		for i := 0; i < b.N; i++ {
 			polyglotData.Encode(polyglotBuf)
 			polyglotBuf.Reset()
 		}
@@ -250,8 +244,7 @@ func BenchmarkEncodeInt32(b *testing.B) {
 
 	b.Run("vtproto", func(b *testing.B) {
 		var err error
-		bench := hrtesting.NewBenchmark(b)
-		for bench.Next() {
+		for i := 0; i < b.N; i++ {
 			_, err = vtData.MarshalToVT(vtBuf)
 			if err != nil {
 				b.Fatal(err)
@@ -281,8 +274,7 @@ func BenchmarkDecodeInt32(b *testing.B) {
 
 	b.Run("polyglot", func(b *testing.B) {
 		var err error
-		bench := hrtesting.NewBenchmark(b)
-		for bench.Next() {
+		for i := 0; i < b.N; i++ {
 			err = polyglotData.Decode(polyglotBytes)
 			if err != nil {
 				b.Fatal(err)
@@ -296,8 +288,7 @@ func BenchmarkDecodeInt32(b *testing.B) {
 
 	b.Run("vtproto", func(b *testing.B) {
 		var err error
-		bench := hrtesting.NewBenchmark(b)
-		for bench.Next() {
+		for i := 0; i < b.N; i++ {
 			err = vtData.UnmarshalVT(vtBuf)
 			if err != nil {
 				b.Fatal(err)

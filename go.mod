@@ -6,7 +6,6 @@ go 1.20
 
 require (
 	github.com/loopholelabs/polyglot v1.1.3-0.20231019175707-00c42d83ac53
-	github.com/loov/hrtime v1.0.3
 	google.golang.org/grpc v1.59.0
 	google.golang.org/protobuf v1.31.0
 )
