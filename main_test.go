@@ -396,6 +396,7 @@ func BenchmarkEncodeBytesParallel(b *testing.B) {
 
 	b.Run("polyglot", func(b *testing.B) {
 		b.SetBytes(512)
+		b.SetParallelism(runtime.NumCPU() / 2)
 		b.RunParallel(func(pb *testing.PB) {
 			polyglotBuf := polyglot.NewBuffer()
 			for pb.Next() {
@@ -412,6 +413,7 @@ func BenchmarkEncodeBytesParallel(b *testing.B) {
 
 	b.Run("vtproto", func(b *testing.B) {
 		b.SetBytes(512)
+		b.SetParallelism(runtime.NumCPU() / 2)
 		b.RunParallel(func(pb *testing.PB) {
 			var err error
 			vtBuf := make([]byte, 0, 1024)
@@ -504,6 +506,7 @@ func BenchmarkDecodeBytesParallel(b *testing.B) {
 
 	b.Run("polyglot", func(b *testing.B) {
 		b.SetBytes(512)
+		b.SetParallelism(runtime.NumCPU() / 2)
 		b.RunParallel(func(pb *testing.PB) {
 			var err error
 			polyglotData := new(polyglotBenchmark.BytesData)
@@ -523,6 +526,7 @@ func BenchmarkDecodeBytesParallel(b *testing.B) {
 
 	b.Run("vtproto", func(b *testing.B) {
 		b.SetBytes(512)
+		b.SetParallelism(runtime.NumCPU() / 2)
 		b.RunParallel(func(pb *testing.PB) {
 			var err error
 			vtData := new(vtBenchmark.BytesData)
