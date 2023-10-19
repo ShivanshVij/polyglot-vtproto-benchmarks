@@ -22,7 +22,9 @@ import (
 	"bytes"
 	"crypto/rand"
 	"github.com/loopholelabs/polyglot"
+	"github.com/loov/hrtime/hrtesting"
 	"math"
+	"runtime"
 	"testing"
 )
 
@@ -33,33 +35,37 @@ func BenchmarkEncodeBytes(b *testing.B) {
 	polyglotData := polyglotBenchmark.BytesData{
 		Bytes: randData,
 	}
-
 	polyglotBuf := polyglot.NewBuffer()
-	b.Run("polyglot", func(b *testing.B) {
-		b.SetBytes(512)
-		b.ReportAllocs()
-		for i := 0; i < b.N; i++ {
-			polyglotData.Encode(polyglotBuf)
-			polyglotBuf.Reset()
-		}
-	})
 
 	vtData := vtBenchmark.BytesData{
 		Bytes: randData,
 	}
 	vtBuf := make([]byte, 0, 1024)
 
+	b.ResetTimer()
+
+	b.Run("polyglot", func(b *testing.B) {
+		b.SetBytes(512)
+		bench := hrtesting.NewBenchmark(b)
+		for bench.Next() {
+			polyglotData.Encode(polyglotBuf)
+			polyglotBuf.Reset()
+		}
+		runtime.KeepAlive(polyglotData)
+	})
+
 	b.Run("vtproto", func(b *testing.B) {
 		var err error
 		b.SetBytes(512)
-		b.ReportAllocs()
-		for i := 0; i < b.N; i++ {
+		bench := hrtesting.NewBenchmark(b)
+		for bench.Next() {
 			_, err = vtData.MarshalToVT(vtBuf)
 			if err != nil {
 				b.Fatal(err)
 			}
 			vtBuf = vtBuf[:0]
 		}
+		runtime.KeepAlive(vtData)
 	})
 }
 
@@ -73,13 +79,13 @@ func BenchmarkEncodeBytesParallel(b *testing.B) {
 
 	b.Run("polyglot", func(b *testing.B) {
 		b.SetBytes(512)
-		b.ReportAllocs()
 		b.RunParallel(func(pb *testing.PB) {
 			polyglotBuf := polyglot.NewBuffer()
 			for pb.Next() {
 				polyglotData.Encode(polyglotBuf)
 				polyglotBuf.Reset()
 			}
+			runtime.KeepAlive(polyglotData)
 		})
 	})
 
@@ -89,7 +95,6 @@ func BenchmarkEncodeBytesParallel(b *testing.B) {
 
 	b.Run("vtproto", func(b *testing.B) {
 		b.SetBytes(512)
-		b.ReportAllocs()
 		b.RunParallel(func(pb *testing.PB) {
 			var err error
 			vtBuf := make([]byte, 0, 1024)
@@ -100,6 +105,7 @@ func BenchmarkEncodeBytesParallel(b *testing.B) {
 				}
 				vtBuf = vtBuf[:0]
 			}
+			runtime.KeepAlive(vtData)
 		})
 	})
 }
@@ -115,11 +121,21 @@ func BenchmarkDecodeBytes(b *testing.B) {
 	polyglotData.Encode(polyglotBuf)
 	polyglotBytes := polyglotBuf.Bytes()
 
+	vtData := vtBenchmark.BytesData{
+		Bytes: randData,
+	}
+
+	vtBuf := make([]byte, 1024)
+	_, _ = vtData.MarshalToVT(vtBuf)
+	vtBuf = vtBuf[:vtData.SizeVT()]
+
+	b.ResetTimer()
+
 	b.Run("polyglot", func(b *testing.B) {
 		var err error
 		b.SetBytes(512)
-		b.ReportAllocs()
-		for i := 0; i < b.N; i++ {
+		bench := hrtesting.NewBenchmark(b)
+		for bench.Next() {
 			polyglotData.Bytes = nil
 			err = polyglotData.Decode(polyglotBytes)
 			if err != nil {
@@ -129,21 +145,14 @@ func BenchmarkDecodeBytes(b *testing.B) {
 				b.Fail()
 			}
 		}
+		runtime.KeepAlive(polyglotData)
 	})
-
-	vtData := vtBenchmark.BytesData{
-		Bytes: randData,
-	}
-
-	vtBuf := make([]byte, 1024)
-	_, _ = vtData.MarshalToVT(vtBuf)
-	vtBuf = vtBuf[:vtData.SizeVT()]
 
 	b.Run("vtproto", func(b *testing.B) {
 		var err error
 		b.SetBytes(512)
-		b.ReportAllocs()
-		for i := 0; i < b.N; i++ {
+		bench := hrtesting.NewBenchmark(b)
+		for bench.Next() {
 			vtData.Reset()
 			err = vtData.UnmarshalVT(vtBuf)
 			if err != nil {
@@ -153,6 +162,7 @@ func BenchmarkDecodeBytes(b *testing.B) {
 				b.Fail()
 			}
 		}
+		runtime.KeepAlive(vtData)
 	})
 }
 
@@ -167,9 +177,18 @@ func BenchmarkDecodeBytesParallel(b *testing.B) {
 	polyglotData.Encode(polyglotBuf)
 	polyglotBytes := polyglotBuf.Bytes()
 
+	vtData := vtBenchmark.BytesData{
+		Bytes: randData,
+	}
+
+	vtBuf := make([]byte, 1024)
+	_, _ = vtData.MarshalToVT(vtBuf)
+	vtBuf = vtBuf[:vtData.SizeVT()]
+
+	b.ResetTimer()
+
 	b.Run("polyglot", func(b *testing.B) {
 		b.SetBytes(512)
-		b.ReportAllocs()
 		b.RunParallel(func(pb *testing.PB) {
 			var err error
 			polyglotData := new(polyglotBenchmark.BytesData)
@@ -183,20 +202,12 @@ func BenchmarkDecodeBytesParallel(b *testing.B) {
 					b.Fail()
 				}
 			}
+			runtime.KeepAlive(polyglotData)
 		})
 	})
 
-	vtData := vtBenchmark.BytesData{
-		Bytes: randData,
-	}
-
-	vtBuf := make([]byte, 1024)
-	_, _ = vtData.MarshalToVT(vtBuf)
-	vtBuf = vtBuf[:vtData.SizeVT()]
-
 	b.Run("vtproto", func(b *testing.B) {
 		b.SetBytes(512)
-		b.ReportAllocs()
 		b.RunParallel(func(pb *testing.PB) {
 			var err error
 			vtData := new(vtBenchmark.BytesData)
@@ -210,6 +221,7 @@ func BenchmarkDecodeBytesParallel(b *testing.B) {
 					b.Fail()
 				}
 			}
+			runtime.KeepAlive(vtData)
 		})
 	})
 }
@@ -219,29 +231,34 @@ func BenchmarkEncodeInt32(b *testing.B) {
 		Integer: math.MaxInt32,
 	}
 	polyglotBuf := polyglot.NewBuffer()
-	b.Run("polyglot", func(b *testing.B) {
-		b.ReportAllocs()
-		for i := 0; i < b.N; i++ {
-			polyglotData.Encode(polyglotBuf)
-			polyglotBuf.Reset()
-		}
-	})
 
 	vtData := vtBenchmark.IntegerData{
 		Integer: math.MaxInt32,
 	}
 	vtBuf := make([]byte, 0, 1024)
 
+	b.ResetTimer()
+
+	b.Run("polyglot", func(b *testing.B) {
+		bench := hrtesting.NewBenchmark(b)
+		for bench.Next() {
+			polyglotData.Encode(polyglotBuf)
+			polyglotBuf.Reset()
+		}
+		runtime.KeepAlive(polyglotData)
+	})
+
 	b.Run("vtproto", func(b *testing.B) {
 		var err error
-		b.ReportAllocs()
-		for i := 0; i < b.N; i++ {
+		bench := hrtesting.NewBenchmark(b)
+		for bench.Next() {
 			_, err = vtData.MarshalToVT(vtBuf)
 			if err != nil {
 				b.Fatal(err)
 			}
 			vtBuf = vtBuf[:0]
 		}
+		runtime.KeepAlive(vtData)
 	})
 }
 
@@ -253,10 +270,19 @@ func BenchmarkDecodeInt32(b *testing.B) {
 	polyglotData.Encode(polyglotBuf)
 	polyglotBytes := polyglotBuf.Bytes()
 
+	vtData := vtBenchmark.IntegerData{
+		Integer: math.MaxInt32,
+	}
+	vtBuf := make([]byte, 1024)
+	_, _ = vtData.MarshalToVT(vtBuf)
+	vtBuf = vtBuf[:vtData.SizeVT()]
+
+	b.ResetTimer()
+
 	b.Run("polyglot", func(b *testing.B) {
 		var err error
-		b.ReportAllocs()
-		for i := 0; i < b.N; i++ {
+		bench := hrtesting.NewBenchmark(b)
+		for bench.Next() {
 			err = polyglotData.Decode(polyglotBytes)
 			if err != nil {
 				b.Fatal(err)
@@ -265,19 +291,13 @@ func BenchmarkDecodeInt32(b *testing.B) {
 				b.Fail()
 			}
 		}
+		runtime.KeepAlive(polyglotData)
 	})
-
-	vtData := vtBenchmark.IntegerData{
-		Integer: math.MaxInt32,
-	}
-	vtBuf := make([]byte, 1024)
-	_, _ = vtData.MarshalToVT(vtBuf)
-	vtBuf = vtBuf[:vtData.SizeVT()]
 
 	b.Run("vtproto", func(b *testing.B) {
 		var err error
-		b.ReportAllocs()
-		for i := 0; i < b.N; i++ {
+		bench := hrtesting.NewBenchmark(b)
+		for bench.Next() {
 			err = vtData.UnmarshalVT(vtBuf)
 			if err != nil {
 				b.Fatal(err)
@@ -286,5 +306,6 @@ func BenchmarkDecodeInt32(b *testing.B) {
 				b.Fail()
 			}
 		}
+		runtime.KeepAlive(vtData)
 	})
 }
