@@ -5,14 +5,13 @@ go 1.20
 //replace github.com/loopholelabs/polyglot => ../polyglot-go
 
 require (
-	github.com/loopholelabs/polyglot v1.1.3-0.20231019175707-00c42d83ac53
+	github.com/loopholelabs/polyglot v1.1.3-0.20231019193818-6a5cba035e32
 	google.golang.org/grpc v1.59.0
 	google.golang.org/protobuf v1.31.0
 )
 
 require (
 	github.com/golang/protobuf v1.5.3 // indirect
-	github.com/segmentio/asm v1.2.0 // indirect
 	golang.org/x/net v0.17.0 // indirect
 	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect; indirect..
