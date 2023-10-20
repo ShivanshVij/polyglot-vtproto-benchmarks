@@ -402,7 +402,7 @@ func BenchmarkEncodeBytesParallel(b *testing.B) {
 	b.Run("polyglot", func(b *testing.B) {
 		b.SetBytes(512)
 		b.RunParallel(func(pb *testing.PB) {
-			polyglotBuf := polyglot.NewBuffer()
+			polyglotBuf := polyglot.NewBufferSize(1024)
 			for pb.Next() {
 				polyglotData.Encode(polyglotBuf)
 				polyglotBuf.Reset()
