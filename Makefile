@@ -5,7 +5,7 @@ generate:
 	- mkdir -p polyglot && protoc --go-polyglot_out=polyglot bench.proto
 
 benchmark:
-	- go test -bench=. -count=$(BENCHCOUNT) ./... | tee bench.txt && go run -mod=mod golang.org/x/perf/cmd/benchstat bench.txt && go mod tidy && rm -rf bench.txt
+	- go test -bench=. -timeout=24h -count=$(BENCHCOUNT) ./... | tee bench.txt && go run -mod=mod golang.org/x/perf/cmd/benchstat bench.txt && go mod tidy && rm -rf bench.txt
 
 leaks:
 	- go test -bench=. -gcflags="-m=2" ./...
